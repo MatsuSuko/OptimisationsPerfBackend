@@ -22,12 +22,22 @@ public class ReservationController {
     /**
      * DAO permettant d'accéder à la table des clients
      */
-    private ClientDao clientDao = new ClientDao();
+    private ClientDao clientDao;
 
     /**
      * DAO permettant d'accéder à la table des types de réservation
      */
-    private TypeReservationDao typeReservationDao = new TypeReservationDao();
+    private TypeReservationDao typeReservationDao;
+
+    public ReservationController() {
+        this.clientDao = new ClientDao();
+        this.typeReservationDao = new TypeReservationDao();
+    }
+
+    public ReservationController(ClientDao clientDao, TypeReservationDao typeReservationDao) {
+        this.clientDao = clientDao;
+        this.typeReservationDao = typeReservationDao;
+    }
 
     /**
      * Méthode qui créée une réservation pour un client à partir des informations transmises
