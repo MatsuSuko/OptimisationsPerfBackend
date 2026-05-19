@@ -43,7 +43,6 @@ public class ReservationController {
 
         // 1) Récupération des infos provenant de la classe appelante
         String identifiantClient = params.getIdentifiantClient();
-        String dateReservationStr = params.getDateReservation();
         String typeReservation = params.getTypeReservation();
         int nbPlaces = params.getNbPlaces();
 
