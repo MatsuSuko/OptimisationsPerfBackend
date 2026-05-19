@@ -60,15 +60,8 @@ public class ReservationController {
         // 6) Ajout de la réservation au client
         client.getReservations().add(reservation);
 
-        // 7) Calcul du montant total de la réservation qui dépend:
-        //    - du nombre de places
-        //    - de la réduction qui s'applique si le client est premium ou non
-        double total = type.getMontant() * nbPlaces;
-        if (client.isPremium()) {
-            reservation.setTotal(total * (1 - type.getReductionPourcent() / 100.0));
-        } else {
-            reservation.setTotal(total);
-        }
+        // 7) Calcul du montant total délégué à TypeReservation (GRASP - Information Expert)
+        reservation.setTotal(type.calculerTotal(nbPlaces, client.isPremium()));
         return reservation;
     }
 

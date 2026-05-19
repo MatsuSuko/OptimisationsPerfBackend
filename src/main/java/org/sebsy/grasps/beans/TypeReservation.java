@@ -112,4 +112,20 @@ public class TypeReservation {
     public void setReductionPourcent(double reductionPourcent) {
         this.reductionPourcent = reductionPourcent;
     }
+
+    /**
+     * GRASP - Information Expert : TypeReservation possède toutes les données
+     * nécessaires au calcul du montant total, c'est donc elle qui doit le calculer.
+     *
+     * @param nbPlaces  nombre de places réservées
+     * @param isPremium indique si le client bénéficie d'une réduction
+     * @return montant total à payer
+     */
+    public double calculerTotal(int nbPlaces, boolean isPremium) {
+        double total = montant * nbPlaces;
+        if (isPremium) {
+            return total * (1 - reductionPourcent / 100.0);
+        }
+        return total;
+    }
 }
