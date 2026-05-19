@@ -80,4 +80,15 @@ public class Client {
     public void setReservations(List<Reservation> reservations) {
         this.reservations = reservations;
     }
+
+    /**
+     * GRASP - Information Expert : Client possède sa liste de réservations,
+     * c'est donc lui qui est responsable de l'ajout d'une réservation.
+     *
+     * @param reservation la réservation à ajouter
+     */
+    public void ajouterReservation(Reservation reservation) {
+        reservation.setClient(this);
+        reservations.add(reservation);
+    }
 }

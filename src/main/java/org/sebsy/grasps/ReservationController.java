@@ -55,10 +55,9 @@ public class ReservationController {
         // 5) Création de la réservation
         Reservation reservation = new Reservation(dateReservation);
         reservation.setNbPlaces(nbPlaces);
-        reservation.setClient(client);
 
-        // 6) Ajout de la réservation au client
-        client.getReservations().add(reservation);
+        // 6) Ajout délégué à Client (GRASP - Information Expert)
+        client.ajouterReservation(reservation);
 
         // 7) Calcul du montant total délégué à TypeReservation (GRASP - Information Expert)
         reservation.setTotal(type.calculerTotal(nbPlaces, client.isPremium()));
