@@ -83,4 +83,14 @@ public class Params {
     public void setTypeReservation(String typeReservation) {
         this.typeReservation = typeReservation;
     }
+
+    /**
+     * GRASP - Information Expert : Params possède la date en String,
+     * c'est donc lui qui est responsable de la conversion en LocalDateTime.
+     *
+     * @return la date de réservation au format LocalDateTime
+     */
+    public LocalDateTime getDateReservationAsLocalDateTime() {
+        return LocalDateTime.parse(dateReservation, FORMATTER);
+    }
 }
