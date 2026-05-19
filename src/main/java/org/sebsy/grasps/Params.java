@@ -1,6 +1,11 @@
 package org.sebsy.grasps;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 public class Params {
+
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
     private String identifiantClient;
     private int nbPlaces;
