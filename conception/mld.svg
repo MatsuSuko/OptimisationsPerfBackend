@@ -1,0 +1,128 @@
+<svg viewBox="0 0 1000 650" xmlns="http://www.w3.org/2000/svg" font-family="monospace, sans-serif" font-size="11">
+  <title>Modèle Logique de Données – Open Food Facts</title>
+
+  <rect width="1000" height="650" fill="#f8f9fa" rx="8"/>
+  <text x="500" y="26" text-anchor="middle" font-size="15" font-weight="bold" fill="#1a1a2e">Modèle Logique de Données (MLD) – Open Food Facts</text>
+
+  <!-- CATEGORIE -->
+  <rect x="20" y="50" width="185" height="68" rx="4" fill="#ffffff" stroke="#e07b39" stroke-width="2"/>
+  <rect x="20" y="50" width="185" height="24" rx="4" fill="#e07b39"/>
+  <text x="112" y="67" text-anchor="middle" font-weight="bold" fill="#fff">categorie</text>
+  <text x="30" y="87" fill="#333">PK id BIGINT AUTO_INCREMENT</text>
+  <text x="30" y="104" fill="#333">   nom VARCHAR(255) UNIQUE</text>
+
+  <!-- MARQUE -->
+  <rect x="20" y="155" width="185" height="68" rx="4" fill="#ffffff" stroke="#e07b39" stroke-width="2"/>
+  <rect x="20" y="155" width="185" height="24" rx="4" fill="#e07b39"/>
+  <text x="112" y="172" text-anchor="middle" font-weight="bold" fill="#fff">marque</text>
+  <text x="30" y="192" fill="#333">PK id BIGINT AUTO_INCREMENT</text>
+  <text x="30" y="209" fill="#333">   nom VARCHAR(255) UNIQUE</text>
+
+  <!-- PRODUIT -->
+  <rect x="280" y="40" width="270" height="515" rx="4" fill="#ffffff" stroke="#4a6fa5" stroke-width="2"/>
+  <rect x="280" y="40" width="270" height="24" rx="4" fill="#4a6fa5"/>
+  <text x="415" y="57" text-anchor="middle" font-weight="bold" fill="#fff">produit</text>
+  <text x="290" y="78" fill="#333">PK id BIGINT AUTO_INCREMENT</text>
+  <text x="290" y="94" fill="#333">   nom VARCHAR(255)</text>
+  <text x="290" y="110" fill="#333">   nutrition_grade_fr CHAR(1)</text>
+  <text x="290" y="126" fill="#333">   energie100g DOUBLE</text>
+  <text x="290" y="142" fill="#333">   graisse100g DOUBLE</text>
+  <text x="290" y="158" fill="#333">   sucres100g DOUBLE</text>
+  <text x="290" y="174" fill="#333">   fibres100g DOUBLE</text>
+  <text x="290" y="190" fill="#333">   proteines100g DOUBLE</text>
+  <text x="290" y="206" fill="#333">   sel100g DOUBLE</text>
+  <text x="290" y="222" fill="#333">   vit_a100g DOUBLE</text>
+  <text x="290" y="238" fill="#333">   vit_d100g DOUBLE</text>
+  <text x="290" y="254" fill="#333">   vit_e100g DOUBLE</text>
+  <text x="290" y="270" fill="#333">   vit_k100g DOUBLE</text>
+  <text x="290" y="286" fill="#333">   vit_c100g DOUBLE</text>
+  <text x="290" y="302" fill="#333">   vit_b1100g DOUBLE</text>
+  <text x="290" y="318" fill="#333">   vit_b2100g DOUBLE</text>
+  <text x="290" y="334" fill="#333">   vit_pp100g DOUBLE</text>
+  <text x="290" y="350" fill="#333">   vit_b6100g DOUBLE</text>
+  <text x="290" y="366" fill="#333">   vit_b9100g DOUBLE</text>
+  <text x="290" y="382" fill="#333">   vit_b12100g DOUBLE</text>
+  <text x="290" y="398" fill="#333">   calcium100g DOUBLE</text>
+  <text x="290" y="414" fill="#333">   magnesium100g DOUBLE</text>
+  <text x="290" y="430" fill="#333">   iron100g DOUBLE</text>
+  <text x="290" y="446" fill="#333">   fer100g DOUBLE</text>
+  <text x="290" y="462" fill="#333">   beta_carotene100g DOUBLE</text>
+  <text x="290" y="478" fill="#333">   presence_huile_palme BOOLEAN</text>
+  <line x1="280" y1="490" x2="550" y2="490" stroke="#4a6fa5" stroke-width="1"/>
+  <text x="290" y="506" fill="#c0392b">FK categorie_id BIGINT → categorie(id)</text>
+  <text x="290" y="522" fill="#c0392b">FK marque_id BIGINT → marque(id)</text>
+  <text x="290" y="543" fill="#888" font-size="10" font-style="italic">NOT NULL sur categorie_id et marque_id</text>
+
+  <!-- INGREDIENT -->
+  <rect x="720" y="50" width="220" height="68" rx="4" fill="#ffffff" stroke="#2e8b57" stroke-width="2"/>
+  <rect x="720" y="50" width="220" height="24" rx="4" fill="#2e8b57"/>
+  <text x="830" y="67" text-anchor="middle" font-weight="bold" fill="#fff">ingredient</text>
+  <text x="730" y="87" fill="#333">PK id BIGINT AUTO_INCREMENT</text>
+  <text x="730" y="104" fill="#333">   nom VARCHAR(255) UNIQUE</text>
+
+  <!-- ALLERGENE -->
+  <rect x="720" y="200" width="220" height="68" rx="4" fill="#ffffff" stroke="#2e8b57" stroke-width="2"/>
+  <rect x="720" y="200" width="220" height="24" rx="4" fill="#2e8b57"/>
+  <text x="830" y="217" text-anchor="middle" font-weight="bold" fill="#fff">allergene</text>
+  <text x="730" y="237" fill="#333">PK id BIGINT AUTO_INCREMENT</text>
+  <text x="730" y="254" fill="#333">   nom VARCHAR(255) UNIQUE</text>
+
+  <!-- ADDITIF -->
+  <rect x="720" y="350" width="220" height="68" rx="4" fill="#ffffff" stroke="#2e8b57" stroke-width="2"/>
+  <rect x="720" y="350" width="220" height="24" rx="4" fill="#2e8b57"/>
+  <text x="830" y="367" text-anchor="middle" font-weight="bold" fill="#fff">additif</text>
+  <text x="730" y="387" fill="#333">PK id BIGINT AUTO_INCREMENT</text>
+  <text x="730" y="404" fill="#333">   nom VARCHAR(255) UNIQUE</text>
+
+  <!-- TABLE JOINTURE produit_ingredient -->
+  <rect x="600" y="80" width="105" height="58" rx="4" fill="#f0f0f0" stroke="#7f8c8d" stroke-width="1.5"/>
+  <rect x="600" y="80" width="105" height="20" rx="4" fill="#7f8c8d"/>
+  <text x="652" y="95" text-anchor="middle" font-size="10" font-weight="bold" fill="#fff">produit_ingredient</text>
+  <text x="606" y="113" fill="#c0392b" font-size="10">FK produit_id</text>
+  <text x="606" y="128" fill="#c0392b" font-size="10">FK ingredient_id</text>
+
+  <!-- TABLE JOINTURE produit_allergene -->
+  <rect x="600" y="220" width="105" height="58" rx="4" fill="#f0f0f0" stroke="#7f8c8d" stroke-width="1.5"/>
+  <rect x="600" y="220" width="105" height="20" rx="4" fill="#7f8c8d"/>
+  <text x="652" y="235" text-anchor="middle" font-size="10" font-weight="bold" fill="#fff">produit_allergene</text>
+  <text x="606" y="253" fill="#c0392b" font-size="10">FK produit_id</text>
+  <text x="606" y="268" fill="#c0392b" font-size="10">FK allergene_id</text>
+
+  <!-- TABLE JOINTURE produit_additif -->
+  <rect x="600" y="365" width="105" height="58" rx="4" fill="#f0f0f0" stroke="#7f8c8d" stroke-width="1.5"/>
+  <rect x="600" y="365" width="105" height="20" rx="4" fill="#7f8c8d"/>
+  <text x="652" y="380" text-anchor="middle" font-size="10" font-weight="bold" fill="#fff">produit_additif</text>
+  <text x="606" y="398" fill="#c0392b" font-size="10">FK produit_id</text>
+  <text x="606" y="413" fill="#c0392b" font-size="10">FK additif_id</text>
+
+  <!-- Flèches FK categorie → produit -->
+  <line x1="205" y1="84" x2="280" y2="84" stroke="#e07b39" stroke-width="1.5"/>
+  <polygon points="278,80 288,84 278,88" fill="#e07b39"/>
+
+  <!-- Flèches FK marque → produit -->
+  <line x1="205" y1="189" x2="280" y2="200" stroke="#e07b39" stroke-width="1.5"/>
+  <polygon points="278,196 288,200 278,204" fill="#e07b39"/>
+
+  <!-- produit → produit_ingredient -->
+  <line x1="550" y1="108" x2="600" y2="108" stroke="#7f8c8d" stroke-width="1.5"/>
+  <!-- produit_ingredient → ingredient -->
+  <line x1="705" y1="108" x2="720" y2="84" stroke="#7f8c8d" stroke-width="1.5"/>
+
+  <!-- produit → produit_allergene -->
+  <line x1="550" y1="248" x2="600" y2="248" stroke="#7f8c8d" stroke-width="1.5"/>
+  <!-- produit_allergene → allergene -->
+  <line x1="705" y1="248" x2="720" y2="234" stroke="#7f8c8d" stroke-width="1.5"/>
+
+  <!-- produit → produit_additif -->
+  <line x1="550" y1="393" x2="600" y2="393" stroke="#7f8c8d" stroke-width="1.5"/>
+  <!-- produit_additif → additif -->
+  <line x1="705" y1="393" x2="720" y2="384" stroke="#7f8c8d" stroke-width="1.5"/>
+
+  <!-- Légende -->
+  <rect x="20" y="565" width="530" height="68" rx="4" fill="#ffffff" stroke="#ddd" stroke-width="1"/>
+  <text x="35" y="583" font-size="11" font-weight="bold" fill="#333">Légende</text>
+  <text x="35" y="599" font-size="11" fill="#333">PK = Clé primaire</text>
+  <text x="35" y="616" font-size="11" fill="#333">FK = Clé étrangère</text>
+  <text x="180" y="599" font-size="11" fill="#333">Tables grises = tables de jointure (relation N↔N)</text>
+  <text x="180" y="616" font-size="11" fill="#333">UNIQUE = contrainte d'unicité appliquée en base</text>
+</svg>
