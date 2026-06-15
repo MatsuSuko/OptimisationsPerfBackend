@@ -1,6 +1,59 @@
+# Fichiers compilés Java
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+
+# Dossier de build Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Fichiers de configuration IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Fichiers de configuration Eclipse
 .classpath
 .project
-*.class
-/.settings
-/target
-.idea
+.settings/
+bin/
+
+# Fichiers de configuration VS Code
+.vscode/
+
+# Fichiers de configuration NetBeans
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+nbactions.xml
+nb-configuration.xml
+
+# Fichiers de logs
+*.log
+logs/
+
+# Fichiers système (macOS et Windows)
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Fichiers de variables d'environnement et secrets
+.env
+.env.local
+*.properties.local
+
+# Fichiers générés par Claude Code
+.claude/
