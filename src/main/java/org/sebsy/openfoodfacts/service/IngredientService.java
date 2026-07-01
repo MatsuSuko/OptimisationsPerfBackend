@@ -2,6 +2,7 @@ package org.sebsy.openfoodfacts.service;
 
 import org.sebsy.openfoodfacts.dao.IngredientDao;
 import org.sebsy.openfoodfacts.entity.Ingredient;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +28,7 @@ public class IngredientService {
      * @return l'ingrédient existant ou nouvellement créé
      */
     @Transactional
+    @Cacheable(cacheNames = "ingredientsByName", unless = "#result == null")
     public Ingredient findOrCreate(String nom) {
         return ingredientDao.findByNom(nom)
                 .orElseGet(() -> ingredientDao.save(new Ingredient(nom)));
@@ -38,6 +40,7 @@ public class IngredientService {
      * @param limit le nombre maximum de résultats
      * @return la liste des ingrédients les plus fréquents
      */
+    @Cacheable(cacheNames = "topIngredients")
     public List<Ingredient> findTop(int limit) {
         return ingredientDao.findTopByOccurrence(limit);
     }

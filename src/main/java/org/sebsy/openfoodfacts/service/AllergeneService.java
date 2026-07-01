@@ -2,6 +2,7 @@ package org.sebsy.openfoodfacts.service;
 
 import org.sebsy.openfoodfacts.dao.AllergeneDao;
 import org.sebsy.openfoodfacts.entity.Allergene;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +28,7 @@ public class AllergeneService {
      * @return l'allergène existant ou nouvellement créé
      */
     @Transactional
+    @Cacheable(cacheNames = "allergensByName", unless = "#result == null")
     public Allergene findOrCreate(String nom) {
         return allergeneDao.findByNom(nom)
                 .orElseGet(() -> allergeneDao.save(new Allergene(nom)));
@@ -38,6 +40,7 @@ public class AllergeneService {
      * @param limit le nombre maximum de résultats
      * @return la liste des allergènes les plus fréquents
      */
+    @Cacheable(cacheNames = "topAllergens")
     public List<Allergene> findTop(int limit) {
         return allergeneDao.findTopByOccurrence(limit);
     }

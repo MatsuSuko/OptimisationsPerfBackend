@@ -2,6 +2,7 @@ package org.sebsy.openfoodfacts.service;
 
 import org.sebsy.openfoodfacts.dao.CategorieDao;
 import org.sebsy.openfoodfacts.entity.Categorie;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +28,7 @@ public class CategorieService {
      * @return la catégorie existante ou nouvellement créée
      */
     @Transactional
+    @Cacheable(cacheNames = "categoriesByName", unless = "#result == null")
     public Categorie findOrCreate(String nom) {
         return categorieDao.findByNom(nom)
                 .orElseGet(() -> categorieDao.save(new Categorie(nom)));

@@ -2,6 +2,7 @@ package org.sebsy.openfoodfacts.service;
 
 import org.sebsy.openfoodfacts.dao.MarqueDao;
 import org.sebsy.openfoodfacts.entity.Marque;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +28,7 @@ public class MarqueService {
      * @return la marque existante ou nouvellement créée
      */
     @Transactional
+    @Cacheable(cacheNames = "brandsByName", unless = "#result == null")
     public Marque findOrCreate(String nom) {
         return marqueDao.findByNom(nom)
                 .orElseGet(() -> marqueDao.save(new Marque(nom)));

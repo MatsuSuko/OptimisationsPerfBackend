@@ -6,6 +6,8 @@ import org.sebsy.openfoodfacts.dao.ProduitDao;
 import org.sebsy.openfoodfacts.entity.Categorie;
 import org.sebsy.openfoodfacts.entity.Marque;
 import org.sebsy.openfoodfacts.entity.Produit;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -37,6 +39,17 @@ public class ProduitService {
      * @return le produit sauvegardé avec son identifiant généré
      */
     @Transactional
+    @CacheEvict(
+            cacheNames = {
+                    "topProductsByBrand",
+                    "topProductsByCategory",
+                    "topProductsByBrandAndCategory",
+                    "topIngredients",
+                    "topAllergens",
+                    "topAdditives"
+            },
+            allEntries = true
+    )
     public Produit save(Produit produit) {
         return produitDao.save(produit);
     }
@@ -57,6 +70,7 @@ public class ProduitService {
      * @param limit     le nombre de produits à retourner
      * @return la liste des produits, ou une liste vide si la marque est inconnue
      */
+    @Cacheable(cacheNames = "topProductsByBrand")
     public List<Produit> findTopByMarque(String nomMarque, int limit) {
         Pageable pageable = PageRequest.of(0, limit);
         return marqueDao.findByNom(nomMarque)
@@ -71,6 +85,7 @@ public class ProduitService {
      * @param limit        le nombre de produits à retourner
      * @return la liste des produits, ou une liste vide si la catégorie est inconnue
      */
+    @Cacheable(cacheNames = "topProductsByCategory")
     public List<Produit> findTopByCategorie(String nomCategorie, int limit) {
         Pageable pageable = PageRequest.of(0, limit);
         return categorieDao.findByNom(nomCategorie)
@@ -86,6 +101,7 @@ public class ProduitService {
      * @param limit        le nombre de produits à retourner
      * @return la liste des produits correspondant aux deux critères
      */
+    @Cacheable(cacheNames = "topProductsByBrandAndCategory")
     public List<Produit> findTopByMarqueAndCategorie(String nomMarque, String nomCategorie, int limit) {
         Marque marque = marqueDao.findByNom(nomMarque).orElse(null);
         Categorie categorie = categorieDao.findByNom(nomCategorie).orElse(null);

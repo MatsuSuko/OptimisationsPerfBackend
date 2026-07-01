@@ -2,6 +2,7 @@ package org.sebsy.openfoodfacts.service;
 
 import org.sebsy.openfoodfacts.dao.AdditifDao;
 import org.sebsy.openfoodfacts.entity.Additif;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +28,7 @@ public class AdditifService {
      * @return l'additif existant ou nouvellement créé
      */
     @Transactional
+    @Cacheable(cacheNames = "additivesByName", unless = "#result == null")
     public Additif findOrCreate(String nom) {
         return additifDao.findByNom(nom)
                 .orElseGet(() -> additifDao.save(new Additif(nom)));
@@ -38,6 +40,7 @@ public class AdditifService {
      * @param limit le nombre maximum de résultats
      * @return la liste des additifs les plus fréquents
      */
+    @Cacheable(cacheNames = "topAdditives")
     public List<Additif> findTop(int limit) {
         return additifDao.findTopByOccurrence(limit);
     }
