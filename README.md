@@ -29,7 +29,9 @@ mvn exec:java -Dexec.mainClass="org.sebsy.composite.TestComposite"
 
 # Application Spring Boot (ETL Open Food Facts)
 mvn spring-boot:run
-# → doit afficher "Tomcat started on port 8080" sans erreur
+# → au premier lancement : "Démarrage de l'import ETL..." puis "ETL terminé : XXXX produits chargés"
+# → aux lancements suivants : "ETL ignoré au démarrage : XXXX produits déjà présents en base"
+# → dans tous les cas : "Tomcat started on port 8080" sans erreur
 ```
 
 ## ETL Open Food Facts
