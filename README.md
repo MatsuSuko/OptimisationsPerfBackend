@@ -1,70 +1,132 @@
-# ETL Open Food Facts
-
-Backend Java optimisé qui ingère, nettoie, stocke et expose les données du fichier
-Open Food Facts (produits alimentaires fabriqués en France) via une API REST.
+# Design Patterns — Java
 
 Projet réalisé dans le cadre du module **Optimisation Backend avec Java** (M2 Dev).
+
+Implémentation de plusieurs design patterns en Java.
 
 **Auteurs :** Souvanny BOUNMY, Léo LAFORE
 
 ## Stack technique
 
-- **Spring Boot 3.3** / Java 21
-- **Spring Data JPA** (Hibernate) pour l'accès aux données
-- **MySQL** (H2 disponible en alternative pour les tests)
-- Maven
+- **Java 21**
+- **Spring Boot 3.3** / Maven
+- **JUnit 4 / 5** pour les tests unitaires
+- **H2** (base en mémoire pour tester sans MySQL) / **MySQL** en alternative
 
-## Architecture
-
-```
-org.sebsy.openfoodfacts/
-├── entity/    # Entités JPA : Produit, Categorie, Marque, Ingredient, Allergene, Additif
-├── dao/       # Repositories Spring Data JPA (un par entité métier)
-└── service/   # Couche service + EtlService (lecture/nettoyage/chargement du CSV)
-```
-
-### Règles de gestion
-
-- Catégorie, Marque, Ingrédient, Allergène et Additif sont **uniques en base**
-  (pattern `findOrCreate` dans chaque service).
-- Les ingrédients/allergènes/additifs sont nettoyés à l'import : suppression des
-  parenthèses, des pourcentages et des caractères parasites (`*`, `_`, etc.), et
-  découpés sur plusieurs séparateurs possibles (`,` ou `-`).
-
-Voir [conception/](conception/) pour le diagramme de classes et le MLD.
-
-## Configuration
-
-La base de données est configurée dans
-[application.properties](src/main/resources/application.properties) :
-
-```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/open_food_facts?...
-spring.datasource.username=root
-spring.datasource.password=root
-```
-
-Adapter les identifiants à votre environnement. Une alternative H2 en mémoire est
-disponible en commentaire dans le même fichier pour tester sans serveur MySQL.
-
-Le chemin du fichier CSV source est défini par la propriété `etl.csv.path`.
-
-## Lancer le projet
+## Vérifier que tout fonctionne
 
 ```bash
-mvn clean install
+# Version Java (doit afficher 21.x)
+java -version
+
+# Tests unitaires
+mvn clean test
+
+# Classes exécutables des patterns
+mvn compile
+mvn exec:java -Dexec.mainClass="org.sebsy.strategy.DemoTri"
+mvn exec:java -Dexec.mainClass="org.sebsy.composite.TestComposite"
+
+# Application Spring Boot (ETL Open Food Facts)
 mvn spring-boot:run
+# → doit afficher "Tomcat started on port 8080" sans erreur
 ```
 
-## Format du fichier source
+## ETL Open Food Facts
+Package : `org.sebsy.openfoodfacts`
 
-Le fichier CSV (séparateur `|`) comporte 30 colonnes par produit : catégorie,
-marque, nom, score nutritionnel (A à F), ingrédients, valeurs nutritionnelles
-pour 100g, présence d'huile de palme, allergènes et additifs.
+Application Spring Boot qui lit le fichier CSV Open Food Facts
+([src/main/resources/open-food-facts.csv](src/main/resources/open-food-facts.csv)),
+nettoie les données et les persiste en base via JPA/Hibernate (`Produit`, `Categorie`,
+`Marque`, `Ingredient`, `Allergene`, `Additif`).
 
-## Avancement du TP
+Par défaut la configuration ([application.properties](src/main/resources/application.properties))
+utilise **H2** en local (aucun serveur à lancer). MySQL reste disponible en
+alternative (lignes commentées dans le même fichier).
+
+> ⚠️ `EtlService.chargerFichier()` n'est pour l'instant appelée par aucun
+> déclencheur automatique (`CommandLineRunner` ou endpoint REST) — l'application
+> démarre correctement mais le CSV n'est pas encore chargé en base. À faire dans
+> un prochain commit dédié.
+
+### Avancement
 
 - [x] **Objectif 1** — Conception (diagramme de classes, MLD) → [conception/](conception/)
 - [x] **Objectif 2** — Entités JPA, DAOs, couche service
 - [ ] **Objectif 3** — Optimisation (cache, Virtual Threads, performances)
 - [ ] **Objectif 4** — API REST (`/products`, `/ingredients`, `/allergens`, `/additives`)
+
+## Patterns implémentés
+
+### GRASP — Refactoring `ReservationController`
+Package : `org.sebsy.grasps`
+
+Refactoring d'un contrôleur de réservation de billets (cinéma / théâtre) en appliquant les principes GRASP :
+- **Information Expert** : `TypeReservation.calculerTotal()` calcule le montant total
+- **Information Expert** : `Client.ajouterReservation()` gère sa propre liste de réservations
+- **Low Coupling** : injection des DAOs via constructeur
+- **Information Expert** : `Params.getDateReservationAsLocalDateTime()` convertit la date
+
+---
+
+### Builder — `ProduitBuilder`
+Package : `org.sebsy.builder`
+
+Construction d'un objet `Produit` (alimentaire) de manière fluent :
+
+```java
+Produit produit = new ProduitBuilder()
+    .nom("Coca-Cola")
+    .grade("A")
+    .categorie("Boisson")
+    .marque("Coca-Cola Company")
+    .ajouterIngredient("Eau", 330.0)
+    .ajouterAllergene("Caféine", 5.0)
+    .build();
+```
+
+---
+
+### Factory Method — `ElementFactory`
+Package : `org.sebsy.factory`
+
+Factory qui retourne une instance d'`Element` (`Ingredient`, `Additif`, `Allergene`) en fonction d'un `TypeElement` (énumération) :
+
+```java
+Element e = factory.creerElement(TypeElement.INGREDIENT, "Farine", 200.0, Unite.MILLI_GRAMMES);
+```
+
+---
+
+### Strategy — Algorithmes de tri
+Package : `org.sebsy.strategy`
+
+Refactoring d'une méthode `exec` contenant 3 algorithmes de tri dans un seul bloc `if/else` vers le pattern Strategy :
+- `BubbleSort`
+- `InsertionSort`
+- `SelectionSort`
+
+```java
+tri.exec(TypeTri.BUBBLE_SORT, array);
+```
+
+---
+
+### Composite — Organisation hiérarchique
+Package : `org.sebsy.composite`
+
+Représentation d'une hiérarchie de services et d'employés. `Service` peut contenir des `Employe` ou d'autres `Service`, et `calculerSalaire()` remonte récursivement toute la hiérarchie.
+
+---
+
+### State — Cycle de vie d'une `Commande`
+Package : `org.sebsy.state`
+
+Gestion des états d'une commande via le pattern State :
+
+| État | `ajouterProduit` | `payer` | `livrer` | `annuler` |
+|---|---|---|---|---|
+| CREATION | ✅ | ✅ | ❌ | ✅ |
+| PAIEMENT | ❌ | ❌ | ✅ | ✅ |
+| EN_LIVRAISON | ❌ | ❌ | ❌ | ❌ |
+| ANNULEE | ❌ | ❌ | ❌ | ❌ |

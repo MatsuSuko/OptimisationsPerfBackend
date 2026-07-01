@@ -6,6 +6,8 @@ import org.sebsy.openfoodfacts.dao.ProduitDao;
 import org.sebsy.openfoodfacts.entity.Categorie;
 import org.sebsy.openfoodfacts.entity.Marque;
 import org.sebsy.openfoodfacts.entity.Produit;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,8 +49,9 @@ public class ProduitService {
      * @return la liste des produits, ou une liste vide si la marque est inconnue
      */
     public List<Produit> findTopByMarque(String nomMarque, int limit) {
+        Pageable pageable = PageRequest.of(0, limit);
         return marqueDao.findByNom(nomMarque)
-                .map(m -> produitDao.findTopByMarqueOrderByNutritionGradeFrAsc(m, limit))
+                .map(m -> produitDao.findByMarqueOrderByNutritionGradeFrAsc(m, pageable))
                 .orElse(List.of());
     }
 
@@ -60,8 +63,9 @@ public class ProduitService {
      * @return la liste des produits, ou une liste vide si la catégorie est inconnue
      */
     public List<Produit> findTopByCategorie(String nomCategorie, int limit) {
+        Pageable pageable = PageRequest.of(0, limit);
         return categorieDao.findByNom(nomCategorie)
-                .map(c -> produitDao.findTopByCategorieOrderByNutritionGradeFrAsc(c, limit))
+                .map(c -> produitDao.findByCategorieOrderByNutritionGradeFrAsc(c, pageable))
                 .orElse(List.of());
     }
 
@@ -79,6 +83,6 @@ public class ProduitService {
         if (marque == null || categorie == null) {
             return List.of();
         }
-        return produitDao.findTopByMarqueAndCategorieOrderByNutritionGradeFrAsc(marque, categorie, limit);
+        return produitDao.findByMarqueAndCategorieOrderByNutritionGradeFrAsc(marque, categorie, PageRequest.of(0, limit));
     }
 }

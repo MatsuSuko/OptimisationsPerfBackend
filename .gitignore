@@ -57,3 +57,6 @@ desktop.ini
 
 # Fichiers générés par Claude Code
 .claude/
+
+# Base H2 locale générée à l'exécution
+data/

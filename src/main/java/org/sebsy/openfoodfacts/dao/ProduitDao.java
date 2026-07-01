@@ -3,6 +3,7 @@ package org.sebsy.openfoodfacts.dao;
 import org.sebsy.openfoodfacts.entity.Categorie;
 import org.sebsy.openfoodfacts.entity.Marque;
 import org.sebsy.openfoodfacts.entity.Produit;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -18,28 +19,28 @@ public interface ProduitDao extends JpaRepository<Produit, Long> {
     /**
      * Retourne les N meilleurs produits d'une marque, triés par score nutritionnel.
      *
-     * @param marque la marque ciblée
-     * @param limit  le nombre de produits à retourner
+     * @param marque   la marque ciblée
+     * @param pageable pagination définissant le nombre de produits à retourner
      * @return la liste des produits triés par grade (A → F)
      */
-    List<Produit> findTopByMarqueOrderByNutritionGradeFrAsc(Marque marque, int limit);
+    List<Produit> findByMarqueOrderByNutritionGradeFrAsc(Marque marque, Pageable pageable);
 
     /**
      * Retourne les N meilleurs produits d'une catégorie, triés par score nutritionnel.
      *
      * @param categorie la catégorie ciblée
-     * @param limit     le nombre de produits à retourner
+     * @param pageable  pagination définissant le nombre de produits à retourner
      * @return la liste des produits triés par grade (A → F)
      */
-    List<Produit> findTopByCategorieOrderByNutritionGradeFrAsc(Categorie categorie, int limit);
+    List<Produit> findByCategorieOrderByNutritionGradeFrAsc(Categorie categorie, Pageable pageable);
 
     /**
      * Retourne les N meilleurs produits d'une marque et d'une catégorie, triés par score nutritionnel.
      *
      * @param marque    la marque ciblée
      * @param categorie la catégorie ciblée
-     * @param limit     le nombre de produits à retourner
+     * @param pageable  pagination définissant le nombre de produits à retourner
      * @return la liste des produits triés par grade (A → F)
      */
-    List<Produit> findTopByMarqueAndCategorieOrderByNutritionGradeFrAsc(Marque marque, Categorie categorie, int limit);
+    List<Produit> findByMarqueAndCategorieOrderByNutritionGradeFrAsc(Marque marque, Categorie categorie, Pageable pageable);
 }
