@@ -19,6 +19,8 @@ import java.util.stream.Collectors;
 @Service
 public class EtlService {
 
+    private static final int MAX_NOM_LENGTH = 255;
+
     @Value("${etl.csv.path}")
     private String csvPath;
 
@@ -142,7 +144,11 @@ public class EtlService {
         valeur = valeur.replaceAll("\\d+[,.]?\\d*\\s*%", "");
         // Supprime les caractères parasites : *, _, [, ], #, etc.
         valeur = valeur.replaceAll("[*_\\[\\]#@!^]", "");
-        return valeur.trim();
+        valeur = valeur.trim();
+        if (valeur.length() > MAX_NOM_LENGTH) {
+            valeur = valeur.substring(0, MAX_NOM_LENGTH).trim();
+        }
+        return valeur;
     }
 
     /**

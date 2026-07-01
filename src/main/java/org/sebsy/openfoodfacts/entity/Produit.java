@@ -60,7 +60,7 @@ public class Produit {
     @JoinColumn(name = "marque_id", nullable = false)
     private Marque marque;
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany
     @JoinTable(
         name = "produit_ingredient",
         joinColumns = @JoinColumn(name = "produit_id"),
@@ -68,7 +68,7 @@ public class Produit {
     )
     private List<Ingredient> ingredients = new ArrayList<>();
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany
     @JoinTable(
         name = "produit_allergene",
         joinColumns = @JoinColumn(name = "produit_id"),
@@ -76,7 +76,7 @@ public class Produit {
     )
     private List<Allergene> allergenes = new ArrayList<>();
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany
     @JoinTable(
         name = "produit_additif",
         joinColumns = @JoinColumn(name = "produit_id"),

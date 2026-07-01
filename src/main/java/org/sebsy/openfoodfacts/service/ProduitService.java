@@ -42,6 +42,15 @@ public class ProduitService {
     }
 
     /**
+     * Retourne le nombre total de produits en base.
+     *
+     * @return le nombre de produits persistés
+     */
+    public long count() {
+        return produitDao.count();
+    }
+
+    /**
      * Retourne les N meilleurs produits d'une marque, triés par score nutritionnel (A → F).
      *
      * @param nomMarque le nom de la marque

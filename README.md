@@ -44,10 +44,15 @@ Par défaut la configuration ([application.properties](src/main/resources/applic
 utilise **H2** en local (aucun serveur à lancer). MySQL reste disponible en
 alternative (lignes commentées dans le même fichier).
 
-> ⚠️ `EtlService.chargerFichier()` n'est pour l'instant appelée par aucun
-> déclencheur automatique (`CommandLineRunner` ou endpoint REST) — l'application
-> démarre correctement mais le CSV n'est pas encore chargé en base. À faire dans
-> un prochain commit dédié.
+Au démarrage, l'application lance automatiquement l'ETL si la base est vide.
+Si des produits sont déjà présents, l'import est ignoré pour éviter les doublons
+à chaque redémarrage.
+
+Pour désactiver ce comportement:
+
+```properties
+etl.run-on-startup=false
+```
 
 ### Avancement
 
