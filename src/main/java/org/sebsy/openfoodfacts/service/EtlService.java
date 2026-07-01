@@ -1,6 +1,8 @@
 package org.sebsy.openfoodfacts.service;
 
 import org.sebsy.openfoodfacts.entity.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -10,6 +12,16 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -19,10 +31,17 @@ import java.util.stream.Collectors;
 @Service
 public class EtlService {
 
+    private static final Logger logger = LoggerFactory.getLogger(EtlService.class);
     private static final int MAX_NOM_LENGTH = 255;
 
     @Value("${etl.csv.path}")
     private String csvPath;
+
+    @Value("${etl.virtual-threads-enabled:true}")
+    private boolean virtualThreadsEnabled;
+
+    @Value("${etl.max-in-flight-tasks:256}")
+    private int maxInFlightTasks;
 
     private final CategorieService categorieService;
     private final MarqueService marqueService;
@@ -53,20 +72,21 @@ public class EtlService {
      */
     public void chargerFichier() throws IOException {
         long debut = System.currentTimeMillis();
-        int compteur = 0;
+        AtomicInteger compteur = new AtomicInteger();
+        ReferenceCaches caches = new ReferenceCaches();
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(csvPath))) {
-            reader.readLine(); // ignorer l'en-tête
+        logger.info("ETL démarré | csv={} | virtualThreads={} | maxInFlightTasks={}",
+                csvPath, virtualThreadsEnabled, Math.max(1, maxInFlightTasks));
 
-            String ligne;
-            while ((ligne = reader.readLine()) != null) {
-                traiterLigne(ligne);
-                compteur++;
-            }
+        if (virtualThreadsEnabled) {
+            chargerFichierEnParallele(compteur, caches);
+        } else {
+            chargerFichierSequentiel(compteur, caches);
         }
 
         long duree = System.currentTimeMillis() - debut;
-        System.out.printf("ETL terminé : %d produits chargés en %d ms%n", compteur, duree);
+        logger.info("ETL terminé : {} produits chargés en {} ms", compteur.get(), duree);
+        System.out.printf("ETL terminé : %d produits chargés en %d ms%n", compteur.get(), duree);
     }
 
     /**
@@ -74,12 +94,12 @@ public class EtlService {
      *
      * @param ligne une ligne brute du fichier CSV
      */
-    private void traiterLigne(String ligne) {
+    private void traiterLigne(String ligne, ReferenceCaches caches) {
         String[] champs = ligne.split("\\|", -1);
         if (champs.length < 30) return;
 
-        Categorie categorie = categorieService.findOrCreate(nettoyer(champs[0]));
-        Marque marque = marqueService.findOrCreate(nettoyer(champs[1]));
+        Categorie categorie = getOrCreate(caches.categories, nettoyer(champs[0]), categorieService::findOrCreate);
+        Marque marque = getOrCreate(caches.brands, nettoyer(champs[1]), marqueService::findOrCreate);
 
         Produit produit = new Produit();
         produit.setNom(nettoyer(champs[2]));
@@ -112,21 +132,71 @@ public class EtlService {
         produit.setPresenceHuilePalme("1".equals(champs[27].trim()));
 
         List<Ingredient> ingredients = decouperListe(champs[4]).stream()
-                .map(ingredientService::findOrCreate)
+                .map(ingredient -> getOrCreate(caches.ingredients, ingredient, ingredientService::findOrCreate))
                 .collect(Collectors.toList());
         produit.setIngredients(ingredients);
 
         List<Allergene> allergenes = decouperListe(champs[28]).stream()
-                .map(allergeneService::findOrCreate)
+                .map(allergene -> getOrCreate(caches.allergens, allergene, allergeneService::findOrCreate))
                 .collect(Collectors.toList());
         produit.setAllergenes(allergenes);
 
         List<Additif> additifs = decouperListe(champs[29]).stream()
-                .map(additifService::findOrCreate)
+                .map(additif -> getOrCreate(caches.additives, additif, additifService::findOrCreate))
                 .collect(Collectors.toList());
         produit.setAdditifs(additifs);
 
         produitService.save(produit);
+    }
+
+    private void chargerFichierSequentiel(AtomicInteger compteur, ReferenceCaches caches) throws IOException {
+        try (BufferedReader reader = new BufferedReader(new FileReader(csvPath))) {
+            reader.readLine(); // ignorer l'en-tête
+
+            String ligne;
+            while ((ligne = reader.readLine()) != null) {
+                traiterLigne(ligne, caches);
+                compteur.incrementAndGet();
+            }
+        }
+    }
+
+    private void chargerFichierEnParallele(AtomicInteger compteur, ReferenceCaches caches) throws IOException {
+        int inFlightLimit = Math.max(1, maxInFlightTasks);
+        Semaphore semaphore = new Semaphore(inFlightLimit);
+        List<Future<?>> futures = new ArrayList<>();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(csvPath));
+             ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            reader.readLine(); // ignorer l'en-tête
+
+            String ligne;
+            while ((ligne = reader.readLine()) != null) {
+                semaphore.acquire();
+                String ligneCourante = ligne;
+                futures.add(executor.submit(() -> {
+                    try {
+                        traiterLigne(ligneCourante, caches);
+                        compteur.incrementAndGet();
+                    } finally {
+                        semaphore.release();
+                    }
+                }));
+            }
+
+            for (Future<?> future : futures) {
+                future.get();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("Interruption pendant l'import ETL parallèle.", e);
+        } catch (ExecutionException e) {
+            throw new IllegalStateException("Erreur pendant le traitement parallèle d'une ligne du CSV.", e.getCause());
+        }
+    }
+
+    private <T> T getOrCreate(ConcurrentMap<String, T> cache, String key, Function<String, T> loader) {
+        return cache.computeIfAbsent(key, loader);
     }
 
     /**
@@ -186,5 +256,13 @@ public class EtlService {
         } catch (NumberFormatException | NullPointerException e) {
             return null;
         }
+    }
+
+    private static final class ReferenceCaches {
+        private final ConcurrentMap<String, Categorie> categories = new ConcurrentHashMap<>();
+        private final ConcurrentMap<String, Marque> brands = new ConcurrentHashMap<>();
+        private final ConcurrentMap<String, Ingredient> ingredients = new ConcurrentHashMap<>();
+        private final ConcurrentMap<String, Allergene> allergens = new ConcurrentHashMap<>();
+        private final ConcurrentMap<String, Additif> additives = new ConcurrentHashMap<>();
     }
 }
