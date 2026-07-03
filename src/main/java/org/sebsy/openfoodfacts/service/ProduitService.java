@@ -10,6 +10,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,6 +62,16 @@ public class ProduitService {
      */
     public long count() {
         return produitDao.count();
+    }
+
+    /**
+     * Retourne tous les produits triés par identifiant.
+     * Utile pour les affichages de diagnostic en console.
+     *
+     * @return la liste complète des produits persistés
+     */
+    public List<Produit> findAllForConsole() {
+        return produitDao.findAll(Sort.by(Sort.Direction.ASC, "id"));
     }
 
     /**

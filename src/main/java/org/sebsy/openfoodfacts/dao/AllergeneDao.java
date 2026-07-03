@@ -30,11 +30,12 @@ public interface AllergeneDao extends JpaRepository<Allergene, Long> {
      * @return la liste des allergènes les plus courants
      */
     @Query(value = """
-        SELECT a.* FROM allergene a
+        SELECT a.id AS id, a.nom AS nom, COUNT(pa.produit_id) AS occurrence
+        FROM allergene a
         JOIN produit_allergene pa ON pa.allergene_id = a.id
         GROUP BY a.id
         ORDER BY COUNT(pa.produit_id) DESC
         LIMIT :limit
         """, nativeQuery = true)
-    List<Allergene> findTopByOccurrence(int limit);
+    List<NamedOccurrenceProjection> findTopByOccurrence(int limit);
 }

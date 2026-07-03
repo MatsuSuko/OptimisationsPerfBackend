@@ -42,4 +42,13 @@ public class CategorieService {
     public List<Categorie> findAll() {
         return categorieDao.findAll();
     }
+
+    /**
+     * Retourne le nombre total de catégories en base.
+     *
+     * @return le nombre de catégories persistées
+     */
+    public long count() {
+        return categorieDao.count();
+    }
 }

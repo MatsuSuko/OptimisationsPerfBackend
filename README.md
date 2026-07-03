@@ -60,8 +60,82 @@ etl.run-on-startup=false
 
 - [x] **Objectif 1** — Conception (diagramme de classes, MLD) → [conception/](conception/)
 - [x] **Objectif 2** — Entités JPA, DAOs, couche service
-- [ ] **Objectif 3** — Optimisation (cache, Virtual Threads, performances)
-- [ ] **Objectif 4** — API REST (`/products`, `/ingredients`, `/allergens`, `/additives`)
+- [x] **Objectif 3** — Optimisation (cache Spring, Virtual Threads, H2)
+- [x] **Objectif 4** — API REST (`/products`, `/ingredients`, `/allergens`, `/additives`)
+
+## Lancer le projet
+
+```bash
+cd /Users/leolafore/OptimisationsPerfBackend
+mvn clean compile
+mvn spring-boot:run -Dspring-boot.run.arguments="--spring.datasource.url=jdbc:h2:mem:etltest --server.port=8081"
+```
+
+À surveiller dans les logs :
+
+- `ETL démarré | ...`
+- `ETL terminé : XXXX produits chargés en YYYY ms`
+
+Console H2 :
+
+```text
+http://localhost:8081/h2-console
+```
+
+Identifiants H2 :
+
+```text
+JDBC URL   : jdbc:h2:mem:etltest
+User Name  : sa
+Password   :
+```
+
+Si tu lances le projet avec une autre URL JDBC, il faut mettre cette même valeur
+dans le champ `JDBC URL` de la console H2.
+
+## Objectif 3 — Optimisation
+
+Le projet utilise :
+
+- **Spring Cache** pour éviter certaines recherches répétées
+- **Virtual Threads** pour paralléliser le traitement des lignes du CSV
+- **H2** pour tester localement rapidement
+
+Configuration utile dans [application.properties](src/main/resources/application.properties) :
+
+```properties
+spring.cache.type=simple
+etl.virtual-threads-enabled=true
+etl.max-in-flight-tasks=256
+etl.run-on-startup=true
+```
+
+## Objectif 4 — API REST
+
+Important :
+
+- `http://localhost:8081/` renvoie `404`, c'est normal
+- il faut appeler directement une route API
+
+Routes disponibles :
+
+- `GET /products/top-by-brand?brand=X&limit=N`
+- `GET /products/top-by-category?category=X&limit=N`
+- `GET /products/top-by-brand-category?brand=X&category=Y&limit=N`
+- `GET /ingredients/top?limit=N`
+- `GET /allergens/top?limit=N`
+- `GET /additives/top?limit=N`
+
+Exemples d'URLs :
+
+```text
+http://localhost:8081/products/top-by-brand?brand=Nestle&limit=5
+http://localhost:8081/products/top-by-category?category=Yaourts&limit=5
+http://localhost:8081/products/top-by-brand-category?brand=Nestle&category=Yaourts&limit=5
+http://localhost:8081/ingredients/top?limit=10
+http://localhost:8081/allergens/top?limit=10
+http://localhost:8081/additives/top?limit=10
+```
 
 ## Patterns implémentés
 

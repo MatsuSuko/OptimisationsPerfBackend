@@ -1,6 +1,7 @@
 package org.sebsy.openfoodfacts.service;
 
 import org.sebsy.openfoodfacts.dao.AdditifDao;
+import org.sebsy.openfoodfacts.dto.TopOccurrenceResponse;
 import org.sebsy.openfoodfacts.entity.Additif;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -41,7 +42,18 @@ public class AdditifService {
      * @return la liste des additifs les plus fréquents
      */
     @Cacheable(cacheNames = "topAdditives")
-    public List<Additif> findTop(int limit) {
-        return additifDao.findTopByOccurrence(limit);
+    public List<TopOccurrenceResponse> findTop(int limit) {
+        return additifDao.findTopByOccurrence(limit).stream()
+                .map(result -> new TopOccurrenceResponse(result.getId(), result.getNom(), result.getOccurrence()))
+                .toList();
+    }
+
+    /**
+     * Retourne le nombre total d'additifs en base.
+     *
+     * @return le nombre d'additifs persistés
+     */
+    public long count() {
+        return additifDao.count();
     }
 }

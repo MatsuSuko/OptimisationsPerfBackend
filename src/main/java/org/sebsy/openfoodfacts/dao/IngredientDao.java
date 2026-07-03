@@ -30,11 +30,12 @@ public interface IngredientDao extends JpaRepository<Ingredient, Long> {
      * @return la liste des ingrédients les plus courants
      */
     @Query(value = """
-        SELECT i.* FROM ingredient i
+        SELECT i.id AS id, i.nom AS nom, COUNT(pi.produit_id) AS occurrence
+        FROM ingredient i
         JOIN produit_ingredient pi ON pi.ingredient_id = i.id
         GROUP BY i.id
         ORDER BY COUNT(pi.produit_id) DESC
         LIMIT :limit
         """, nativeQuery = true)
-    List<Ingredient> findTopByOccurrence(int limit);
+    List<NamedOccurrenceProjection> findTopByOccurrence(int limit);
 }

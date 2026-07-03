@@ -1,6 +1,7 @@
 package org.sebsy.openfoodfacts.service;
 
 import org.sebsy.openfoodfacts.dao.AllergeneDao;
+import org.sebsy.openfoodfacts.dto.TopOccurrenceResponse;
 import org.sebsy.openfoodfacts.entity.Allergene;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -41,7 +42,18 @@ public class AllergeneService {
      * @return la liste des allergènes les plus fréquents
      */
     @Cacheable(cacheNames = "topAllergens")
-    public List<Allergene> findTop(int limit) {
-        return allergeneDao.findTopByOccurrence(limit);
+    public List<TopOccurrenceResponse> findTop(int limit) {
+        return allergeneDao.findTopByOccurrence(limit).stream()
+                .map(result -> new TopOccurrenceResponse(result.getId(), result.getNom(), result.getOccurrence()))
+                .toList();
+    }
+
+    /**
+     * Retourne le nombre total d'allergènes en base.
+     *
+     * @return le nombre d'allergènes persistés
+     */
+    public long count() {
+        return allergeneDao.count();
     }
 }

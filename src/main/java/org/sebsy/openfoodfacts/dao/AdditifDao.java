@@ -30,11 +30,12 @@ public interface AdditifDao extends JpaRepository<Additif, Long> {
      * @return la liste des additifs les plus courants
      */
     @Query(value = """
-        SELECT a.* FROM additif a
+        SELECT a.id AS id, a.nom AS nom, COUNT(pad.produit_id) AS occurrence
+        FROM additif a
         JOIN produit_additif pad ON pad.additif_id = a.id
         GROUP BY a.id
         ORDER BY COUNT(pad.produit_id) DESC
         LIMIT :limit
         """, nativeQuery = true)
-    List<Additif> findTopByOccurrence(int limit);
+    List<NamedOccurrenceProjection> findTopByOccurrence(int limit);
 }

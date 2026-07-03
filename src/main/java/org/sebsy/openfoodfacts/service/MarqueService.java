@@ -42,4 +42,13 @@ public class MarqueService {
     public List<Marque> findAll() {
         return marqueDao.findAll();
     }
+
+    /**
+     * Retourne le nombre total de marques en base.
+     *
+     * @return le nombre de marques persistées
+     */
+    public long count() {
+        return marqueDao.count();
+    }
 }

@@ -43,6 +43,9 @@ public class EtlService {
     @Value("${etl.max-in-flight-tasks:256}")
     private int maxInFlightTasks;
 
+    @Value("${etl.console.print-each-import:true}")
+    private boolean printEachImportInConsole;
+
     private final CategorieService categorieService;
     private final MarqueService marqueService;
     private final IngredientService ingredientService;
@@ -72,21 +75,23 @@ public class EtlService {
      */
     public void chargerFichier() throws IOException {
         long debut = System.currentTimeMillis();
-        AtomicInteger compteur = new AtomicInteger();
+        ImportStats stats = new ImportStats();
         ReferenceCaches caches = new ReferenceCaches();
 
         logger.info("ETL démarré | csv={} | virtualThreads={} | maxInFlightTasks={}",
                 csvPath, virtualThreadsEnabled, Math.max(1, maxInFlightTasks));
 
         if (virtualThreadsEnabled) {
-            chargerFichierEnParallele(compteur, caches);
+            chargerFichierEnParallele(stats, caches);
         } else {
-            chargerFichierSequentiel(compteur, caches);
+            chargerFichierSequentiel(stats, caches);
         }
 
         long duree = System.currentTimeMillis() - debut;
-        logger.info("ETL terminé : {} produits chargés en {} ms", compteur.get(), duree);
-        System.out.printf("ETL terminé : %d produits chargés en %d ms%n", compteur.get(), duree);
+        logger.info("ETL terminé : lignes lues={} | produits inseres={} | lignes ignorees={} | temps={} ms",
+                stats.readCount.get(), stats.insertedCount.get(), stats.skippedCount.get(), duree);
+        System.out.printf("ETL terminé : lignes lues=%d | produits inseres=%d | lignes ignorees=%d | temps=%d ms%n",
+                stats.readCount.get(), stats.insertedCount.get(), stats.skippedCount.get(), duree);
     }
 
     /**
@@ -94,9 +99,12 @@ public class EtlService {
      *
      * @param ligne une ligne brute du fichier CSV
      */
-    private void traiterLigne(String ligne, ReferenceCaches caches) {
+    private void traiterLigne(String ligne, ReferenceCaches caches, ImportStats stats) {
         String[] champs = ligne.split("\\|", -1);
-        if (champs.length < 30) return;
+        if (champs.length < 30) {
+            stats.skippedCount.incrementAndGet();
+            return;
+        }
 
         Categorie categorie = getOrCreate(caches.categories, nettoyer(champs[0]), categorieService::findOrCreate);
         Marque marque = getOrCreate(caches.brands, nettoyer(champs[1]), marqueService::findOrCreate);
@@ -146,22 +154,24 @@ public class EtlService {
                 .collect(Collectors.toList());
         produit.setAdditifs(additifs);
 
-        produitService.save(produit);
+        Produit produitSauvegarde = produitService.save(produit);
+        int totalImporte = stats.insertedCount.incrementAndGet();
+        afficherImportConsole(produitSauvegarde, totalImporte);
     }
 
-    private void chargerFichierSequentiel(AtomicInteger compteur, ReferenceCaches caches) throws IOException {
+    private void chargerFichierSequentiel(ImportStats stats, ReferenceCaches caches) throws IOException {
         try (BufferedReader reader = new BufferedReader(new FileReader(csvPath))) {
             reader.readLine(); // ignorer l'en-tête
 
             String ligne;
             while ((ligne = reader.readLine()) != null) {
-                traiterLigne(ligne, caches);
-                compteur.incrementAndGet();
+                stats.readCount.incrementAndGet();
+                traiterLigne(ligne, caches, stats);
             }
         }
     }
 
-    private void chargerFichierEnParallele(AtomicInteger compteur, ReferenceCaches caches) throws IOException {
+    private void chargerFichierEnParallele(ImportStats stats, ReferenceCaches caches) throws IOException {
         int inFlightLimit = Math.max(1, maxInFlightTasks);
         Semaphore semaphore = new Semaphore(inFlightLimit);
         List<Future<?>> futures = new ArrayList<>();
@@ -172,12 +182,12 @@ public class EtlService {
 
             String ligne;
             while ((ligne = reader.readLine()) != null) {
+                stats.readCount.incrementAndGet();
                 semaphore.acquire();
                 String ligneCourante = ligne;
                 futures.add(executor.submit(() -> {
                     try {
-                        traiterLigne(ligneCourante, caches);
-                        compteur.incrementAndGet();
+                        traiterLigne(ligneCourante, caches, stats);
                     } finally {
                         semaphore.release();
                     }
@@ -258,11 +268,33 @@ public class EtlService {
         }
     }
 
+    private void afficherImportConsole(Produit produit, int totalImporte) {
+        if (!printEachImportInConsole) {
+            return;
+        }
+
+        System.out.printf(
+                "IMPORT [%d] : id=%d | nom=%s | marque=%s | categorie=%s | grade=%s%n",
+                totalImporte,
+                produit.getId(),
+                produit.getNom(),
+                produit.getMarque() == null ? "" : produit.getMarque().getNom(),
+                produit.getCategorie() == null ? "" : produit.getCategorie().getNom(),
+                produit.getNutritionGradeFr() == null ? "n/a" : produit.getNutritionGradeFr()
+        );
+    }
+
     private static final class ReferenceCaches {
         private final ConcurrentMap<String, Categorie> categories = new ConcurrentHashMap<>();
         private final ConcurrentMap<String, Marque> brands = new ConcurrentHashMap<>();
         private final ConcurrentMap<String, Ingredient> ingredients = new ConcurrentHashMap<>();
         private final ConcurrentMap<String, Allergene> allergens = new ConcurrentHashMap<>();
         private final ConcurrentMap<String, Additif> additives = new ConcurrentHashMap<>();
+    }
+
+    private static final class ImportStats {
+        private final AtomicInteger readCount = new AtomicInteger();
+        private final AtomicInteger insertedCount = new AtomicInteger();
+        private final AtomicInteger skippedCount = new AtomicInteger();
     }
 }

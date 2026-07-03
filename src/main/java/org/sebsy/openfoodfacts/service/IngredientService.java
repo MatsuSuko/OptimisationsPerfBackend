@@ -2,6 +2,7 @@ package org.sebsy.openfoodfacts.service;
 
 import org.sebsy.openfoodfacts.dao.IngredientDao;
 import org.sebsy.openfoodfacts.entity.Ingredient;
+import org.sebsy.openfoodfacts.dto.TopOccurrenceResponse;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,7 +42,18 @@ public class IngredientService {
      * @return la liste des ingrédients les plus fréquents
      */
     @Cacheable(cacheNames = "topIngredients")
-    public List<Ingredient> findTop(int limit) {
-        return ingredientDao.findTopByOccurrence(limit);
+    public List<TopOccurrenceResponse> findTop(int limit) {
+        return ingredientDao.findTopByOccurrence(limit).stream()
+                .map(result -> new TopOccurrenceResponse(result.getId(), result.getNom(), result.getOccurrence()))
+                .toList();
+    }
+
+    /**
+     * Retourne le nombre total d'ingrédients en base.
+     *
+     * @return le nombre d'ingrédients persistés
+     */
+    public long count() {
+        return ingredientDao.count();
     }
 }
