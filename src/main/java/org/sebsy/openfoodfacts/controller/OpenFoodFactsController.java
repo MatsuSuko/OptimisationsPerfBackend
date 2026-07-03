@@ -79,12 +79,14 @@ public class OpenFoodFactsController {
     }
 
     private ProductSummaryResponse toProductSummary(Produit produit) {
+        String nomMarque = produit.getMarque() != null ? produit.getMarque().getNom() : null;
+        String nomCategorie = produit.getCategorie() != null ? produit.getCategorie().getNom() : null;
         return new ProductSummaryResponse(
                 produit.getId(),
                 produit.getNom(),
                 produit.getNutritionGradeFr(),
-                produit.getMarque().getNom(),
-                produit.getCategorie().getNom()
+                nomMarque,
+                nomCategorie
         );
     }
 }

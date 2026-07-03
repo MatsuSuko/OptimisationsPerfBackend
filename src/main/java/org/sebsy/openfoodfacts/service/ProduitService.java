@@ -44,10 +44,7 @@ public class ProduitService {
             cacheNames = {
                     "topProductsByBrand",
                     "topProductsByCategory",
-                    "topProductsByBrandAndCategory",
-                    "topIngredients",
-                    "topAllergens",
-                    "topAdditives"
+                    "topProductsByBrandAndCategory"
             },
             allEntries = true
     )
@@ -81,6 +78,7 @@ public class ProduitService {
      * @param limit     le nombre de produits à retourner
      * @return la liste des produits, ou une liste vide si la marque est inconnue
      */
+    @Transactional(readOnly = true)
     @Cacheable(cacheNames = "topProductsByBrand")
     public List<Produit> findTopByMarque(String nomMarque, int limit) {
         Pageable pageable = PageRequest.of(0, limit);
@@ -96,6 +94,7 @@ public class ProduitService {
      * @param limit        le nombre de produits à retourner
      * @return la liste des produits, ou une liste vide si la catégorie est inconnue
      */
+    @Transactional(readOnly = true)
     @Cacheable(cacheNames = "topProductsByCategory")
     public List<Produit> findTopByCategorie(String nomCategorie, int limit) {
         Pageable pageable = PageRequest.of(0, limit);
@@ -112,6 +111,7 @@ public class ProduitService {
      * @param limit        le nombre de produits à retourner
      * @return la liste des produits correspondant aux deux critères
      */
+    @Transactional(readOnly = true)
     @Cacheable(cacheNames = "topProductsByBrandAndCategory")
     public List<Produit> findTopByMarqueAndCategorie(String nomMarque, String nomCategorie, int limit) {
         Marque marque = marqueDao.findByNom(nomMarque).orElse(null);
